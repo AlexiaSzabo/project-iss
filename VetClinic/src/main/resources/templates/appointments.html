@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VetClinic - Appointments</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .topbar { background: #2c7873; color: white; padding: 12px 24px; display: flex; align-items: center; gap: 20px; }
+        .topbar h1 { font-size: 18px; }
+        .topbar .section { font-size: 16px; font-weight: bold; }
+        .layout { display: flex; min-height: calc(100vh - 48px); }
+        .sidebar { width: 160px; background: #f0f8ff; border-right: 1px solid #ddd; padding: 16px 10px; display: flex; flex-direction: column; }
+        .sidebar a { display: block; padding: 10px 12px; color: #333; text-decoration: none; border-radius: 5px; font-size: 14px; margin-bottom: 4px; transition: background 0.2s; }
+        .sidebar a:hover, .sidebar a.active { background: #d4ecf7; color: #2c7873; }
+        .sidebar .spacer { flex: 1; }
+        .sidebar .logout { display: block; padding: 10px 12px; color: #e74c3c; text-decoration: none; border-radius: 5px; font-size: 14px; }
+        .sidebar .logout:hover { background: #fde8e8; }
+        .content { flex: 1; padding: 24px; }
+        .content-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .content-header h2 { font-size: 20px; color: #222; }
+        .btn-add { background: #2c7873; color: white; border: none; padding: 10px 18px; border-radius: 5px; font-size: 14px; cursor: pointer; text-decoration: none; }
+        .btn-add:hover { background: #225f5a; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+        thead { background: #f0f8ff; }
+        th { padding: 12px 16px; text-align: left; font-size: 13px; color: #555; border-bottom: 1px solid #e0e0e0; }
+        td { padding: 12px 16px; font-size: 14px; color: #333; border-bottom: 1px solid #f0f0f0; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .badge-scheduled { background: #d4edda; color: #155724; }
+        .badge-cancelled { background: #f8d7da; color: #721c24; }
+        .badge-completed { background: #cce5ff; color: #004085; }
+        .btn-edit { background: #2c7873; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; text-decoration: none; margin-right: 4px; }
+        .btn-record { background: #6f42c1; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; text-decoration: none; margin-right: 4px; }
+        .btn-record:hover { background: #5a32a3; }
+        .btn-cancel-appt { background: #e74c3c; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .btn-cancel-appt:hover { background: #c0392b; }
+        .empty-msg { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <h1>VetClinic</h1>
+    <span class="section">Appointments</span>
+</div>
+<div class="layout">
+    <div class="sidebar">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/dashboard">Patients</a>
+        <a href="/clients">Clients</a>
+        <a href="/appointments" class="active">Appointments</a>
+        <a href="/veterinarians">Veterinarians</a>
+        <a href="/users">Users</a>
+        <a href="/reports">Reports</a>
+        <div class="spacer"></div>
+        <a href="/logout" class="logout">← Logout</a>
+    </div>
+    <div class="content">
+        <div class="content-header">
+            <h2>Appointments</h2>
+            <a href="/appointments/add" class="btn-add">+ New Appointment</a>
+        </div>
+
+        <table th:if="${!appointments.isEmpty()}">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Reason</th>
+                <th>Animal</th>
+                <th>Client</th>
+                <th>Veterinarian</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="appt : ${appointments}">
+                <td th:text="${appt.date}">-</td>
+                <td th:text="${appt.time}">-</td>
+                <td th:text="${appt.reason}">-</td>
+                <td th:text="${appt.animal != null ? appt.animal.name : '-'}">-</td>
+                <td th:text="${appt.client != null ? appt.client.name : '-'}">-</td>
+                <td th:text="${appt.veterinarian != null ? appt.veterinarian.name : '-'}">-</td>
+                <td>
+                    <span th:class="${appt.status == 'Cancelled'} ? 'badge badge-cancelled' : (${appt.status == 'Completed'} ? 'badge badge-completed' : 'badge badge-scheduled')"
+                          th:text="${appt.status}">-</span>
+                </td>
+                <td>
+                    <a th:href="@{/appointments/edit/{id}(id=${appt.id})}" class="btn-edit"
+                       th:if="${appt.status == 'Scheduled'}">Edit</a>
+                    <a th:href="@{/consultations/add(appointmentId=${appt.id})}" class="btn-record"
+                       th:if="${appt.status == 'Scheduled' and appt.animal != null}">Record</a>
+                    <form th:action="@{/appointments/cancel}" method="post"
+                          style="display:inline" th:if="${appt.status == 'Scheduled'}">
+                        <input type="hidden" name="id" th:value="${appt.id}">
+                        <button type="submit" class="btn-cancel-appt"
+                                onclick="return confirm('Cancel this appointment?')">Cancel</button>
+                    </form>
+                    <a th:href="@{/consultations/history(animalId=${appt.animal.id})}"
+                       th:if="${appt.animal != null}" class="btn-edit"
+                       style="background:#17a2b8">History</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${appointments.isEmpty()}" class="empty-msg">
+            No appointments yet. Click <strong>+ New Appointment</strong> to add one.
+        </div>
+    </div>
+</div>
+</body>
+</html>
