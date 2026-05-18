@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VetClinic - Veterinarians</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .topbar { background: #2c7873; color: white; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .topbar-left { display: flex; align-items: center; gap: 20px; }
+        .topbar h1 { font-size: 18px; }
+        .topbar .section { font-size: 16px; font-weight: bold; }
+        .topbar .user { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .layout { display: flex; min-height: calc(100vh - 48px); }
+        .sidebar { width: 160px; background: #f0f8ff; border-right: 1px solid #ddd; padding: 16px 10px; display: flex; flex-direction: column; }
+        .sidebar a { display: block; padding: 10px 12px; color: #333; text-decoration: none; border-radius: 5px; font-size: 14px; margin-bottom: 4px; transition: background 0.2s; }
+        .sidebar a:hover, .sidebar a.active { background: #d4ecf7; color: #2c7873; }
+        .sidebar .spacer { flex: 1; }
+        .sidebar .logout { display: block; padding: 10px 12px; color: #e74c3c; text-decoration: none; border-radius: 5px; font-size: 14px; }
+        .sidebar .logout:hover { background: #fde8e8; }
+        .content { flex: 1; padding: 24px; }
+        .content-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .content-header h2 { font-size: 20px; color: #222; }
+        .btn-add { background: #2c7873; color: white; border: none; padding: 10px 18px; border-radius: 5px; font-size: 14px; cursor: pointer; text-decoration: none; }
+        .btn-add:hover { background: #225f5a; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+        thead { background: #f0f8ff; }
+        th { padding: 12px 16px; text-align: left; font-size: 13px; color: #555; font-weight: bold; border-bottom: 1px solid #e0e0e0; }
+        td { padding: 12px 16px; font-size: 14px; color: #333; border-bottom: 1px solid #f0f0f0; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+        .btn-edit { background: #2c7873; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; text-decoration: none; margin-right: 4px; }
+        .btn-edit:hover { background: #225f5a; }
+        .btn-delete { background: #e74c3c; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .btn-delete:hover { background: #c0392b; }
+        .empty-msg { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+        .admin-only { font-size: 12px; color: #999; font-style: italic; }
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <div class="topbar-left">
+        <h1>VetClinic</h1>
+        <span class="section">Veterinarians</span>
+    </div>
+    <div class="user">
+        <span>👤</span>
+        <span th:text="${employee != null ? employee.name : ''}">User</span>
+    </div>
+</div>
+<div class="layout">
+    <div class="sidebar">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/dashboard">Patients</a>
+        <a href="/clients">Clients</a>
+        <a href="/appointments">Appointments</a>
+        <a href="/veterinarians" class="active">Veterinarians</a>
+        <a href="/users">Users</a>
+        <a href="/reports">Reports</a>
+        <div class="spacer"></div>
+        <a href="/logout" class="logout">← Logout</a>
+    </div>
+    <div class="content">
+        <div class="content-header">
+            <h2>Veterinarians</h2>
+            <a href="/veterinarians/add" class="btn-add">+ Add Veterinarian</a>
+        </div>
+
+        <table th:if="${!veterinarians.isEmpty()}">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="vet, stat : ${veterinarians}">
+                <td th:text="${stat.count}">1</td>
+                <td th:text="${vet.name}">-</td>
+                <td th:text="${vet.specialization}">-</td>
+                <td th:text="${vet.phone}">-</td>
+                <td th:text="${vet.email}">-</td>
+                <td>
+                    <a th:href="@{/veterinarians/edit/{id}(id=${vet.id})}" class="btn-edit">Edit</a>
+                    <form th:action="@{/veterinarians/delete}" method="post" style="display:inline"
+                          onsubmit="return confirm('Delete this veterinarian?')">
+                        <input type="hidden" name="id" th:value="${vet.id}">
+                        <button type="submit" class="btn-delete">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${veterinarians.isEmpty()}" class="empty-msg">
+            No veterinarians registered yet. Click <strong>+ Add Veterinarian</strong> to add one.
+        </div>
+    </div>
+</div>
+</body>
+</html>
